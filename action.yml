@@ -1,0 +1,102 @@
+name: 'pkgbuild info action'
+description: 'tries to determine pkgbuild version information'
+
+inputs:
+  pkgbuild:
+    description: file to look into
+    required: false
+    default: PKGBUILD
+
+runs:
+  using: "composite"
+  steps:
+    - id: version
+      shell: bash
+      run: |
+        VERSION=$(cat ${{ inputs.pkgbuild || 'PKGBUILD' }} | grep ^pkgver= | sed -e 's/^pkgver=//' | awk '{print $1}')-$(cat ${{ matrix.pkgbuild || 'PKGBUILD' }} | grep ^pkgrel= | sed -e 's/^pkgrel=//' | awk '{print $1}')
+        echo "version=${VERSION}" >>$GITHUB_OUTPUT
+    - id: archs
+      shell: bash
+      run: |
+        echo "archs=$(cat ${{ matrix.pkgbuild || 'PKGBUILD' }} | grep ^arch= | sed -e 's/^arch=(\(.*\))/\1/')" >>$GITHUB_OUTPUT
+        echo "arch=$(uname -m)" >>$GITHUB_OUTPUT
+    - id: branches
+      shell: bash
+      run: |
+        echo ${{ github.token }} | gh auth login --with-token
+        RELEASES="$(gh release list --limit 3 --repo ${{ github.repository }})"
+        branches=()
+        echo $RELEASES | grep -vq stable-${{ steps.version.outputs.version }} && branches+=("\"stable\"")
+        echo $RELEASES | grep -vq testing-${{ steps.version.outputs.version }} && branches+=("\"testing\"")
+        echo $RELEASES | grep -vq unstable-${{ steps.version.outputs.version }} && branches+=("\"unstable\"")
+        printf -v joined '%s,' "${branches[@]}"
+        branches="${joined%,}"
+
+        if [ "${branches}" != "" ]; then
+          echo "branches=[${branches}]" >>$GITHUB_OUTPUT
+        fi
+    - id: aarch64
+      shell: bash
+      if: ${{ contains(steps.archs.outputs.archs, 'aarch64') }}
+      run: echo "aarch64=true" >>$GITHUB_OUTPUT
+    - id: x86_64
+      shell: bash
+      if: ${{ contains(steps.archs.outputs.archs, 'x86_64') }}
+      run: echo "x86_64=true" >>$GITHUB_OUTPUT
+    - id: any
+      shell: bash
+      if: ${{ contains(steps.archs.outputs.archs, 'any') }}
+      run: echo "any=true" >>$GITHUB_OUTPUT
+    - id: fits-any
+      shell: bash
+      if: steps.any.outputs.any == 'true' && steps.archs.outputs.arch == 'x86_64'
+      run: echo "fits=true" >>$GITHUB_OUTPUT
+    - id: fits-x86_64
+      shell: bash
+      if: steps.x86_64.outputs.x86_64 == 'true' && steps.archs.outputs.arch == 'x86_64'
+      run: echo "fits=true" >>$GITHUB_OUTPUT
+    - id: fits-aarch64
+      shell: bash
+      if: steps.aarch64.outputs.aarch64 == 'true' && steps.archs.outputs.arch == 'aarch64'
+      run: echo "fits=true" >>$GITHUB_OUTPUT
+    - id: runs-x86_64
+      shell: bash
+      if: steps.any.outputs.any == 'true' || (steps.x86_64.outputs.x86_64 == 'true' && steps.aarch64.outputs.aarch64 != 'true')
+      run: echo "runs-on=[\"ubuntu-latest\"]" >>$GITHUB_OUTPUT
+    - id: runs-aarch64
+      shell: bash
+      if: steps.x86_64.outputs.x86_64 != 'true' && steps.aarch64.outputs.aarch64 == 'true'
+      run: echo "runs-on=[\"buildjet-4vcpu-ubuntu-2204-arm\"]" >>$GITHUB_OUTPUT
+    - id: runs-both
+      shell: bash
+      if: steps.x86_64.outputs.x86_64 == 'true' && steps.aarch64.outputs.aarch64 == 'true'
+      run: echo "runs-on=[\"buildjet-4vcpu-ubuntu-2204-arm\", \"ubuntu-latest\"]" >>$GITHUB_OUTPUT
+
+outputs:
+  version:
+    value: ${{ steps.version.outputs.version }}
+    description: the current pkgbuild version
+  exists:
+    value: ${{ steps.exists.outputs.exists }}
+    description: wether the release already exists
+  fits:
+    description: if package can be built on current architecture
+    value: ${{ steps.fits-any.outputs.fits || steps.fits-x86_64.outputs.fits || steps.fits-aarch64.outputs.fits }}
+  system-arch: 
+    value: ${{ steps.archs.outputs.arch }}
+    description: the runners architecture
+  aarch64: 
+    value: ${{ steps.aarch64.outputs.aarch64 }}
+    description: if the package can be built for aarch64
+  x86_64: 
+    value: ${{ steps.x86_64.outputs.x86_64 }}
+    description: if the package can be built for x86_64
+  any: 
+    value: ${{ steps.any.outputs.any }}
+    description: if the package can be built for any architecture
+  runs-on:
+    value: ${{ steps.runs-both.outputs.runs-on || steps.runs-x86_64.outputs.runs-on || steps.runs-aarch64.outputs.runs-on }}
+    description: runner array
+  branches:
+    value: ${{ steps.branches.outputs.branches || '' }}
+    description: array of branches that have no matching release yet
