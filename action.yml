@@ -24,11 +24,10 @@ runs:
       shell: bash
       run: |
         echo ${{ github.token }} | gh auth login --with-token
-        RELEASES="$(gh release list --limit 3 --repo ${{ github.repository }})"
         branches=()
-        echo $RELEASES | grep -vq stable-${{ steps.version.outputs.version }} && branches+=("\"stable\"")
-        echo $RELEASES | grep -vq testing-${{ steps.version.outputs.version }} && branches+=("\"testing\"")
-        echo $RELEASES | grep -vq unstable-${{ steps.version.outputs.version }} && branches+=("\"unstable\"")
+        gh release list --limit 3 --repo ${{ github.repository }} | grep '^stable-${{ steps.version.outputs.version }}' || branches+=("\"stable\"")
+        gh release list --limit 3 --repo ${{ github.repository }} | grep '^testing-${{ steps.version.outputs.version }}' || branches+=("\"testing\"")
+        gh release list --limit 3 --repo ${{ github.repository }} | grep '^unstable-${{ steps.version.outputs.version }}' || branches+=("\"unstable\"")
         printf -v joined '%s,' "${branches[@]}"
         branches="${joined%,}"
 
