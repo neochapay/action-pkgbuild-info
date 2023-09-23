@@ -1,6 +1,7 @@
 pkgname=dummy
 pkgrel=1
 pkgver=1.0.0
+epoch=1
 pkgdesc="Dummy Package"
 url="https://www.github.com/dummy/dummy"
 depends=('python-pip')
