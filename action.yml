@@ -16,7 +16,7 @@ runs:
         VERSION=$(cat ${{ inputs.pkgbuild || 'PKGBUILD' }} | grep ^pkgver= | sed -e 's/^pkgver=//' | awk '{print $1}')-$(cat ${{ matrix.pkgbuild || 'PKGBUILD' }} | grep ^pkgrel= | sed -e 's/^pkgrel=//' | awk '{print $1}')
         EPOCH=$(cat ${{ matrix.pkgbuild || 'PKGBUILD' }} | { grep ^epoch= || true; } | sed -e 's/^epoch=//' | awk '{print $1}')
         echo "version<<EOF" >> "${GITHUB_OUTPUT}"
-        echo "${EPOCH:+${EPOCH}:}${VERSION}" >> "${GITHUB_OUTPUT}"
+        echo "${EPOCH:+${EPOCH}__}${VERSION}" >> "${GITHUB_OUTPUT}"
         echo "EOF" >> "${GITHUB_OUTPUT}"
     - id: archs
       shell: bash
