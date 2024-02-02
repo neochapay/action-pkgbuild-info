@@ -10,6 +10,10 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: install some tools
+      shell: bash
+      run: |
+        pacman -Syy github-cli --noconfirm
     - id: version
       shell: bash
       run: |
