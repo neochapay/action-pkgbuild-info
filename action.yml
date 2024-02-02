@@ -13,7 +13,11 @@ runs:
     - name: install some tools
       shell: bash
       run: |
-        pacman -Syy github-cli --noconfirm
+        if [ $(grep ^ID= /etc/os-release | cut -d'=' -f2) == 'ubuntu' ]; then
+          sudo apt-get update && sudo apt-get install github-cli -y
+        else
+          pacman -Syy github-cli --noconfirm
+        fi
     - id: version
       shell: bash
       run: |
