@@ -52,21 +52,15 @@ runs:
     - id: aarch64
       shell: bash
       if: ${{ contains(steps.archs.outputs.archs, 'aarch64') }}
-      run: |
-        echo "aarch64=true" >>$GITHUB_OUTPUT
-        gh repo edit --add-topic aarch64
+      run: echo "aarch64=true" >>$GITHUB_OUTPUT
     - id: x86_64
       shell: bash
       if: ${{ contains(steps.archs.outputs.archs, 'x86_64') }}
-      run: | 
-        echo "x86_64=true" >>$GITHUB_OUTPUT
-        gh repo edit --add-topic x86_64
+      run: echo "x86_64=true" >>$GITHUB_OUTPUT
     - id: any
       shell: bash
       if: ${{ contains(steps.archs.outputs.archs, 'any') }}
-      run: |
-        echo "any=true" >>$GITHUB_OUTPUT
-        gh repo edit --add-topic any
+      run: echo "any=true" >>$GITHUB_OUTPUT
     - id: fits-any
       shell: bash
       if: steps.any.outputs.any == 'true' && steps.archs.outputs.arch == 'x86_64'
