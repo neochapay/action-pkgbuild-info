@@ -6,6 +6,10 @@ inputs:
     description: file to look into
     required: false
     default: PKGBUILD
+  arm-runs-on:
+    description: Builder to use when building on arm
+    required: false
+    default: buildjet-4vcpu-ubuntu-2204-arm
 
 runs:
   using: "composite"
@@ -76,11 +80,11 @@ runs:
     - id: runs-aarch64
       shell: bash
       if: steps.x86_64.outputs.x86_64 != 'true' && steps.aarch64.outputs.aarch64 == 'true'
-      run: echo "runs-on=[\"buildjet-4vcpu-ubuntu-2204-arm\"]" >>$GITHUB_OUTPUT
+      run: echo "runs-on=[\"${{ inputs.arm-runs-on }}\"]" >>$GITHUB_OUTPUT
     - id: runs-both
       shell: bash
       if: steps.x86_64.outputs.x86_64 == 'true' && steps.aarch64.outputs.aarch64 == 'true'
-      run: echo "runs-on=[\"buildjet-4vcpu-ubuntu-2204-arm\", \"ubuntu-latest\"]" >>$GITHUB_OUTPUT
+      run: echo "runs-on=[\"${{ inputs.arm-runs-on }}\", \"ubuntu-latest\"]" >>$GITHUB_OUTPUT
 
 outputs:
   version:
