@@ -52,7 +52,7 @@ runs:
     - id: python
       shell: bash
       run: |
-        cat ${{ matrix.pkgbuild || 'PKGBUILD' }} | grep -E 'python setup.py' && echo "python=true" >>$GITHUB_OUTPUT || echo "python=false" >>$GITHUB_OUTPUT
+        cat ${{ matrix.pkgbuild || 'PKGBUILD' }} | grep -E 'python setup.py|python -m' && echo "python=true" >>$GITHUB_OUTPUT || echo "python=false" >>$GITHUB_OUTPUT
     - id: aarch64
       shell: bash
       if: ${{ contains(steps.archs.outputs.archs, 'aarch64') }}
