@@ -49,6 +49,10 @@ runs:
         if [ "${branches}" != "" ]; then
           echo "branches=[${branches}]" >>$GITHUB_OUTPUT
         fi
+    - id: python
+      shell: bash
+      run: |
+        cat ${{ matrix.pkgbuild || 'PKGBUILD' }} | grep -E 'python setup.py' && echo "python=true" >>$GITHUB_OUTPUT || echo "python=false" >>$GITHUB_OUTPUT
     - id: aarch64
       shell: bash
       if: ${{ contains(steps.archs.outputs.archs, 'aarch64') }}
@@ -114,3 +118,6 @@ outputs:
   branches:
     value: ${{ steps.branches.outputs.branches || '' }}
     description: array of branches that have no matching release yet
+  python:
+    value: ${{ steps.python.outputs.python }}
+    description: wether this package is python-based
