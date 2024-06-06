@@ -24,7 +24,7 @@ jobs:
       image: docker://manjarolinux/build:latest
     steps:
       - name: check out repo for action code
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3
+        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4
       - name: pkgbuild
         uses: ./
         with:
