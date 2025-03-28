@@ -25,15 +25,15 @@ runs:
     - id: version
       shell: bash
       run: |
-        VERSION=$(cat ${{ inputs.pkgbuild || 'PKGBUILD' }} | grep ^pkgver= | sed -e 's/^pkgver=//' | awk '{print $1}')-$(cat ${{ matrix.pkgbuild || 'PKGBUILD' }} | grep ^pkgrel= | sed -e 's/^pkgrel=//' | awk '{print $1}')
-        EPOCH=$(cat ${{ matrix.pkgbuild || 'PKGBUILD' }} | { grep ^epoch= || true; } | sed -e 's/^epoch=//' | awk '{print $1}')
+        VERSION=$(cat ${{ inputs.pkgbuild || 'PKGBUILD' }} | grep ^pkgver= | sed -e 's/^pkgver=//' | awk '{print $1}')-$(cat ${{ inputs.pkgbuild || 'PKGBUILD' }} | grep ^pkgrel= | sed -e 's/^pkgrel=//' | awk '{print $1}')
+        EPOCH=$(cat ${{ inputs.pkgbuild || 'PKGBUILD' }} | { grep ^epoch= || true; } | sed -e 's/^epoch=//' | awk '{print $1}')
         echo "version<<EOF" >> "${GITHUB_OUTPUT}"
         echo "${EPOCH:+${EPOCH}__}${VERSION}" >> "${GITHUB_OUTPUT}"
         echo "EOF" >> "${GITHUB_OUTPUT}"
     - id: archs
       shell: bash
       run: |
-        echo "archs=$(cat ${{ matrix.pkgbuild || 'PKGBUILD' }} | grep ^arch= | sed -e 's/^arch=(\(.*\))/\1/')" >>$GITHUB_OUTPUT
+        echo "archs=$(cat ${{ inputs.pkgbuild || 'PKGBUILD' }} | grep ^arch= | sed -e 's/^arch=(\(.*\))/\1/')" >>$GITHUB_OUTPUT
         echo "arch=$(uname -m)" >>$GITHUB_OUTPUT
     - id: branches
       shell: bash
@@ -52,7 +52,7 @@ runs:
     - id: python
       shell: bash
       run: |
-        cat ${{ matrix.pkgbuild || 'PKGBUILD' }} | grep -E 'python setup.py|python -m' && echo "python=true" >>$GITHUB_OUTPUT || echo "python=false" >>$GITHUB_OUTPUT
+        cat ${{ inputs.pkgbuild || 'PKGBUILD' }} | grep -E 'python setup.py|python -m' && echo "python=true" >>$GITHUB_OUTPUT || echo "python=false" >>$GITHUB_OUTPUT
     - id: aarch64
       shell: bash
       if: ${{ contains(steps.archs.outputs.archs, 'aarch64') }}
